@@ -1,5 +1,5 @@
 ---
-title: "Veri Madenciliği"
+title: "multinominal lojistik regresyon"
 author:" Ruveyda Nur Şen" 
 date: "2023-01-25"
 output: html_document
