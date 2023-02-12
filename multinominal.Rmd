@@ -1,0 +1,109 @@
+---
+title: "Veri Madenciliği"
+author:" Ruveyda Nur Şen" 
+date: "2023-01-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Multinominal Lojistik Regresyon ile ilgili örnek
+
+Gerekli paketler
+```{r}
+library(tidyverse)
+library(modelr)
+library(readxl)
+library(broom) 
+library(haven) 
+library(pscl) 
+library(nnet) 
+```
+
+
+```{r}
+data<- read_excel("C:/Users/LENOVO/Desktop/veri mad final ödev/Kitap1.xlsx")
+head(data)
+```
+
+Verimizi çekip karakter sınıfında olanları faktöre çevirdik.Verimiz bir havayolu yolcu memnuniyeti anketi içerir. Memnun veya memnun olmayan yolcular arasındaki ilişkiyi inceler.
+
+Class: Yolcuların uçaktaki seyahat sınıfı.
+Inflight wifi service: Uçak içi wifi hizmeti.
+Departure/Arrival time convenient: Kalkış/Varış zamanı uygunluğu.
+Ease of Online Booking: Online rezervasyon.
+Food and Drink: Yiyecek ve içecek.
+Seat comfort: Koltuk konforu.
+Inflight entertainment: Uçak içi eğlence.
+On-board service: Yerleşik hizmet.
+Baggage handling: Bagaj taşıma.
+Check-in service: Check-in hizmeti.
+Inflight service: Uçak içi hizmeti.
+Cleanliness: Temizlik.
+Satisfaction: Havayolu memnuniyet düzeyi.(Memnuniyet, nötr veya memnuniyetsizlik)
+```{r}
+data$Class<- factor(data$Class)
+data$satisfaction <- factor(data$satisfaction)
+class<-data$Class
+inflight_wifi<-data$`Inflight wifi service`
+departure_arrival_time<-data$`Departure/Arrival time convenient`
+online_booking<-data$`Ease of Online booking`
+food_drink<-data$`Food and drink`
+seat_comfort<-data$`Seat comfort`
+inflight_entertainment<-data$`Inflight entertainment`
+on_board_service<-data$`On-board service`
+baggage_handling<-data$`Baggage handling`
+checking_service<-data$`Checkin service`
+inflight_service<-data$`Inflight service`
+cleanliness<-data$Cleanliness
+satisfaction<-data$satisfaction
+data$satisfaction <- relevel(data$satisfaction, ref="satisfied") 
+```
+kurduğumuz modelde satisfaction bağımlı değişken; departure_arrival_time , online_booking, seat_comfort,baggage_handling,cleanliness bağımsız değişkenlerimizdir.
+
+```{r}
+model <- multinom(satisfaction ~ departure_arrival_time + online_booking+ seat_comfort+baggage_handling+cleanliness, data=data)
+model
+```
+
+modelin özet bilgileri aşağıdadır.
+```{r}
+summary(model)
+```
+elde edilen katsayıları coefs komutu ile bir dataya dönüştürürüz.
+
+```{r}
+coefs <- coef(model)
+coefs
+```
+
+bu katsayıları odds oranına dönüştürürüz.
+```{r}
+odds.data <- exp(coefs)
+odds.data
+```
+odds oranları yorumlamada kolaylık için tekrar dönüştürdük ve satisfaction'daki 1 birimlik artışın odds oranındaki meydana gelecek yüzde değişimi aşağıda incelenebilir.
+```{r}
+odds_transformed.data <- (exp(coefs)-1)*100
+odds_transformed.data
+```
+standart hataların özet bilgisi;
+```{r}
+summary(model)$standard.errors
+```
+
+katsayıların özet bilgisi;
+```{r}
+summary(model)$coefficients
+```
+
+
+```{r}
+zvalues <- summary(model)$coefficients / summary(model)$standard.errors
+zvalues
+```
+z test istatistiği değerleri için geçerli olan olasılıkları pnorm komutuyla hesapladık.
+```{r}
+pnorm(abs(zvalues), lower.tail=FALSE)*2
+```
